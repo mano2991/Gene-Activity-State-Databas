@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gene Activity State Database</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="gene_details.js"></script>
     <style>
         * {
             margin: 0;
@@ -592,7 +594,60 @@
             font-size: 16px;
             margin-bottom: 10px;
         }
+
+        /* Network Plot Styles */
+        .network-container {
+            width: 100%;
+            height: 800px;
+            background: white;
+            border: 1px solid #d4d4d4;
+            border-top: none;
+            overflow: auto; /* Allow scrolling */
+            position: relative;
+        }
+
+        .node circle {
+            fill: #fff;
+            stroke: #20558a;
+            stroke-width: 2px;
+        }
+
+        .node rect {
+            fill: #20558a;
+            stroke: #fff;
+            stroke-width: 2px;
+            rx: 10;
+            ry: 10;
+        }
+
+        .node text {
+            font: 12px sans-serif;
+            fill: #333;
+        }
         
+        .node--internal text {
+            text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+        }
+
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 1.5px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            padding: 8px;
+            font: 12px sans-serif;
+            background: #20558a;
+            color: white;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
         .footer {
             text-align: center;
             padding: 20px;
@@ -869,19 +924,26 @@
 
         <!-- NETWORK TAB -->
         <div id="network-tab" class="tab-content">
-            <div class="network-placeholder">
-                <h2>🕸️ Gene Network Analysis</h2>
-                <p>This feature is under development and will be available soon.</p>
-                <p style="margin-top: 20px; color: #888;">
-                    Future capabilities will include:
-                </p>
-                <ul style="list-style: none; margin-top: 15px; color: #666;">
-                    <li>✓ Interactive network visualization</li>
-                    <li>✓ Gene-gene interaction mapping</li>
-                    <li>✓ Pathway analysis</li>
-                    <li>✓ Community detection</li>
-                    <li>✓ Export network data</li>
-                </ul>
+            <div class="header">
+                <h1>Gene Network Analysis</h1>
+                <p class="subtitle">Explore hierarchical relationships between genes, stages, and histone marks</p>
+            </div>
+
+            <div class="search-section">
+                 <label class="search-label">Visualize Network for Gene:</label>
+                 <div class="search-box">
+                    <div class="input-wrapper" style="flex: 1;">
+                        <input type="text" id="networkSearchInput" placeholder="Enter gene symbol..." style="width: 100%; padding: 8px 12px; border: 1px solid #a0a0a0; font-size: 14px;" oninput="handleNetworkInput(event)" onkeydown="handleNetworkKeyDown(event)">
+                        <div id="network-autocomplete-list" class="autocomplete-items"></div>
+                    </div>
+                    <button class="btn btn-search" onclick="searchNetworkTab()">Visualize</button>
+                 </div>
+            </div>
+
+            <div id="network-main-container" class="network-container" style="height: 1200px; border: 1px solid #d4d4d4;">
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    Search for a gene above to view its hierarchical network plot.
+                </div>
             </div>
         </div>
 
@@ -1094,16 +1156,20 @@
             }
         }
 
-        function closeAllLists() {
-            const list = document.getElementById('autocomplete-list');
-            list.innerHTML = '';
+        function closeAllLists(elmnt) {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            const x = document.getElementsByClassName("autocomplete-items");
+            for (let i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != document.getElementById("geneInput") && elmnt != document.getElementById("networkSearchInput")) {
+                    x[i].innerHTML = "";
+                }
+            }
             currentFocus = -1;
         }
 
         document.addEventListener('click', function(e) {
-            if (e.target !== document.getElementById('geneInput')) {
-                closeAllLists();
-            }
+            closeAllLists(e.target);
         });
 
         function searchGenes() {
@@ -1128,6 +1194,7 @@
             let resultsHTML = '';
             let foundCount = 0;
             let notFoundGenes = [];
+            let foundGenesList = [];
 
             geneSymbols.forEach(geneSymbol => {
                 const gene = geneData.find(g => g.symbol.toLowerCase() === geneSymbol.toLowerCase());
@@ -1135,6 +1202,7 @@
                 if (gene) {
                     foundCount++;
                     resultsHTML += generateGeneTable(gene);
+                    foundGenesList.push(gene.symbol);
                 } else {
                     notFoundGenes.push(geneSymbol);
                 }
@@ -1150,6 +1218,11 @@
 
             resultsDiv.innerHTML = resultsHTML;
 
+            // Draw networks for found genes
+            foundGenesList.forEach(symbol => {
+                drawNetwork(symbol);
+            });
+
             if (foundCount > 0) {
                 resultsDiv.scrollIntoView({
                     behavior: 'smooth',
@@ -1163,10 +1236,11 @@
                 <div class="gene-result">
                     <div class="gene-header">
                         <div class="gene-name">${gene.symbol}</div>
-                        <div class="gene-info">Gene Symbol: ${gene.symbol} | Developmental Stages: E10-P0 | Total Stages: 8</div>
+                        <div class="gene-info">Gene Symbol: ${gene.symbol} | Developmental Stages: E10-P0</div>
                     </div>
                     <div class="gene-content">
-                        <div class="table-container">
+                        <!-- Heatmap/Table View -->
+                        <div class="table-container" style="margin-bottom: 20px;">
                             <table>
                                 <thead>
                                     <tr>
@@ -1193,6 +1267,10 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Network View -->
+                        <div class="legend-title">Hierarchical Network Plot (Gene -> Stage -> Marks)</div>
+                        <div id="network-${gene.symbol}" class="network-container"></div>
                     </div>
                 </div>`;
 
@@ -1336,6 +1414,326 @@
                 alert('Gene not found: ' + searchTerm);
                 highlightedGeneIndex = -1;
             }
+        }
+
+        // Network Search Autocomplete
+        function handleNetworkInput(event) {
+            const input = event.target;
+            const val = input.value;
+            
+            // Close existing list
+            const listDiv = document.getElementById('network-autocomplete-list');
+            listDiv.innerHTML = '';
+            currentFocus = -1;
+
+            if (!val) return false;
+
+            const matches = geneData.filter(gene =>
+                gene.symbol.toLowerCase().includes(val.toLowerCase())
+            ).slice(0, 10);
+
+            matches.forEach(gene => {
+                const div = document.createElement('div');
+                const index = gene.symbol.toLowerCase().indexOf(val.toLowerCase());
+                const before = gene.symbol.substring(0, index);
+                const match = gene.symbol.substring(index, index + val.length);
+                const after = gene.symbol.substring(index + val.length);
+
+                div.innerHTML = `${before}<span class="match-highlight">${match}</span>${after}`;
+                div.addEventListener('click', function() {
+                    input.value = gene.symbol;
+                    listDiv.innerHTML = '';
+                    searchNetworkTab(); // Auto trigger search on selection
+                });
+                listDiv.appendChild(div);
+            });
+        }
+
+        function handleNetworkKeyDown(event) {
+            let list = document.getElementById('network-autocomplete-list');
+            let items = list ? list.getElementsByTagName('div') : [];
+
+            if (event.keyCode === 40) { // Down
+                currentFocus++;
+                addActive(items);
+            } else if (event.keyCode === 38) { // Up
+                currentFocus--;
+                addActive(items);
+            } else if (event.keyCode === 13) { // Enter
+                event.preventDefault();
+                if (currentFocus > -1 && items[currentFocus]) {
+                    items[currentFocus].click();
+                } else {
+                    // If no suggestion selected, search with current text
+                    // Close list first
+                    list.innerHTML = '';
+                    searchNetworkTab();
+                }
+            } else if (event.keyCode === 27) { // Escape
+                list.innerHTML = '';
+            }
+        }
+
+        // Network Visualization Logic
+        function searchNetworkTab() {
+            const input = document.getElementById('networkSearchInput').value.trim();
+            if (!input) {
+                alert("Please enter a gene symbol.");
+                return;
+            }
+            // Clear container
+            const container = document.getElementById('network-main-container');
+            container.innerHTML = '';
+            
+            // Check if gene exists
+            const gene = geneData.find(g => g.symbol.toLowerCase() === input.toLowerCase());
+            if (!gene) {
+                container.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Gene '${input}' not found.</div>`;
+                return;
+            }
+
+            // Create wrapper with download button
+            const wrapperId = `network-wrapper-${gene.symbol}`;
+            const plotId = `network-plot-${gene.symbol}`;
+            
+            container.innerHTML = `
+                <div id="${wrapperId}" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+                    <button class="btn" style="margin-bottom:10px;" onclick="downloadNetwork('${plotId}', '${gene.symbol}')">💾 Download Network (300 DPI PNG)</button>
+                    <div id="${plotId}" style="width:100%; overflow:auto;"></div>
+                </div>`;
+            
+            drawNetwork(gene.symbol, plotId);
+        }
+
+        function downloadNetwork(elementId, geneSymbol) {
+            const container = document.getElementById(elementId);
+            const svg = container.querySelector('svg');
+            
+            if (!svg) {
+                alert("No network visualization found to download.");
+                return;
+            }
+
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svg);
+
+            // Add namespaces if missing
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            if(!source.match(/^<svg[^>]+xmlns:xlink="http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+            }
+
+            // Prep for high res
+            const scaleFactor = 4; // Approx 300 DPI (assuming 72-96 screen DPI)
+            const width = parseInt(svg.getAttribute("width"));
+            const height = parseInt(svg.getAttribute("height"));
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = width * scaleFactor;
+            canvas.height = height * scaleFactor;
+            const ctx = canvas.getContext('2d');
+            
+            // White background
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(scaleFactor, scaleFactor);
+
+            const img = new Image();
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(source)));
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                const a = document.createElement('a');
+                a.download = `${geneSymbol}_network_300dpi.png`;
+                a.href = canvas.toDataURL('image/png');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        }
+
+        function drawNetwork(geneSymbol, specificContainerId = null) {
+            const containerId = specificContainerId || `network-${geneSymbol}`;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            // Clear previous svg if any
+            container.innerHTML = '';
+
+            // Get Data from window.geneDetails
+            if (!window.geneDetails || !window.geneDetails[geneSymbol]) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Detailed mark data not available for this gene.</div>';
+                return;
+            }
+
+            // Get Gene State Info
+            const geneObj = geneData.find(g => g.symbol.toLowerCase() === geneSymbol.toLowerCase());
+            if (!geneObj) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Gene state data not found.</div>';
+                return;
+            }
+
+            const markData = window.geneDetails[geneSymbol]; // Array of 8 arrays
+            
+            // ---------------------------------------------------------
+            // 1. Data Structure: Standard Hierarchy (Root -> Stages -> Marks)
+            // ---------------------------------------------------------
+            const rootData = {
+                name: geneSymbol,
+                type: "gene",
+                children: stages.map((stage, idx) => {
+                    let marks = markData[idx] || [];
+                    marks.sort();
+                    
+                    // Get state for this stage
+                    const stageState = geneObj.states[stage] || 'N/A';
+                    
+                    return {
+                        name: stage,
+                        type: "stage",
+                        state: stageState, // Pass state to stage node too if needed
+                        children: marks.map(mark => ({ 
+                            name: mark, 
+                            type: "mark",
+                            parentState: stageState // Pass state to mark node for coloring
+                        }))
+                    };
+                })
+            };
+
+            // ---------------------------------------------------------
+            // 2. Dynamic Sizing
+            // ---------------------------------------------------------
+            const root = d3.hierarchy(rootData);
+            let leaves = root.leaves();
+            const leafCount = leaves.length;
+            const minLeafWidth = 110;
+            const width = Math.max(container.clientWidth || 1000, leafCount * minLeafWidth);
+            const height = 800; 
+            const marginTop = 60;
+            const marginBottom = 60;
+            const marginLeft = 40;
+            const marginRight = 40;
+
+            const svg = d3.select(`#${containerId}`)
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [0, 0, width, height])
+                .style("background-color", "white")
+                .style("font-family", "Arial, sans-serif");
+
+            // ---------------------------------------------------------
+            // 3. Layout
+            // ---------------------------------------------------------
+            const tree = d3.tree()
+                .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
+                .separation((a, b) => (a.parent == b.parent ? 1.1 : 1.3));
+
+            tree(root);
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${marginLeft},${marginTop})`);
+
+            // ---------------------------------------------------------
+            // 4. Links
+            // ---------------------------------------------------------
+            g.selectAll(".link")
+                .data(root.links())
+                .join("path")
+                .attr("class", "link")
+                .attr("d", d3.linkVertical()
+                    .x(d => d.x)
+                    .y(d => d.y))
+                .style("stroke", "#ccc")
+                .style("stroke-width", "1.5px")
+                .style("fill", "none");
+
+            // ---------------------------------------------------------
+            // 5. Nodes
+            // ---------------------------------------------------------
+            const node = g.selectAll(".node")
+                .data(root.descendants())
+                .join("g")
+                .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+
+            node.each(function(d) {
+                const n = d3.select(this);
+                
+                // --- GENE (ROOT) ---
+                if (d.data.type === 'gene') {
+                    n.append("rect")
+                        .attr("x", -70)
+                        .attr("y", -30)
+                        .attr("width", 140)
+                        .attr("height", 60)
+                        .attr("rx", 10)
+                        .attr("ry", 10)
+                        .style("fill", "#e7f3ff") 
+                        .style("stroke", "#20558a")
+                        .style("stroke-width", "3px");
+                    
+                    n.append("text")
+                        .attr("dy", "0.35em")
+                        .attr("text-anchor", "middle")
+                        .style("fill", "black")
+                        .style("font-weight", "bold")
+                        .style("font-size", "24px")
+                        .text(d.data.name);
+
+                // --- STAGE (LEVEL 1) ---
+                } else if (d.data.type === 'stage') {
+                     // Color stage node based on state? User asked for marks, but maybe stage too?
+                     // Let's keep stage node consistent (Pink) to distinguish levels, 
+                     // OR we can color the rim. Let's keep it simple pink for now 
+                     // to maintain hierarchy clarity, as marks will carry the color.
+                     n.append("circle")
+                        .attr("r", 25)
+                        .style("fill", "#ffe6f2") 
+                        .style("stroke", "#e83e8c")
+                        .style("stroke-width", "2px");
+                     
+                     n.append("text")
+                        .attr("dy", "0.35em")
+                        .attr("text-anchor", "middle")
+                        .style("fill", "black")
+                        .style("font-weight", "bold")
+                        .style("font-size", "14px")
+                        .text(d.data.name);
+
+                // --- MARKS (LEAVES) ---
+                } else {
+                    const state = d.data.parentState;
+                    const color = stateColors[state] || '#cccccc'; // Fallback gray
+                    
+                    // Lighten the color for background fill (optional, or use solid)
+                    // Let's use solid border and lighter fill, or solid fill with white text?
+                    // User requested black text. So lighter fill is better.
+                    // Function to lighten color or just use opacity.
+                    
+                    n.append("rect")
+                        .attr("x", -45)
+                        .attr("y", -12)
+                        .attr("width", 90)
+                        .attr("height", 24)
+                        .attr("rx", 5)
+                        .style("fill", color) // Use the state color directly
+                        .style("fill-opacity", "0.2") // Make it pastel/light
+                        .style("stroke", color)
+                        .style("stroke-width", "2px");
+                        
+                    n.append("text")
+                        .attr("dy", "0.35em")
+                        .attr("text-anchor", "middle")
+                        .style("fill", "black")
+                        .style("font-weight", "bold")
+                        .style("font-size", "12px")
+                        .text(d.data.name);
+                }
+            });
         }
 
         // Load data when page loads
