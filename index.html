@@ -794,8 +794,76 @@
                 <strong>Instructions:</strong> Use the controls above to navigate through the dataset. Enter start and end indices to view specific gene ranges. Search for a gene to highlight it in the heatmap. Hover over cells to see gene names and states.
             </div>
 
+            <div class="legend-section">
+                <div class="legend-title">Activity State Legend</div>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <div class="legend-color ACTIVE">ACTIVE</div>
+                        <span class="legend-label">ACTIVE - Highly active state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PERMISSIVE_ACTIVE">P_ACTIVE</div>
+                        <span class="legend-label">PERMISSIVE_ACTIVE - Permissive active</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PERMISSIVE_POISED">P_POISED</div>
+                        <span class="legend-label">PERMISSIVE_POISED - Permissive poised</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color POISED">POISED</div>
+                        <span class="legend-label">POISED - Ready for activation</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PRIMED">PRIMED</div>
+                        <span class="legend-label">PRIMED - Primed for activity</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color LOW_PRIMED">LOW_PRIM</div>
+                        <span class="legend-label">LOW_PRIMED - Low primed state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color QUIESCENT">QUIESC</div>
+                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="heatmap-container">
                 <canvas id="heatmapCanvas"></canvas>
+            </div>
+
+            <div class="legend-section">
+                <div class="legend-title">Activity State Legend</div>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <div class="legend-color ACTIVE">ACTIVE</div>
+                        <span class="legend-label">ACTIVE - Highly active state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PERMISSIVE_ACTIVE">P_ACTIVE</div>
+                        <span class="legend-label">PERMISSIVE_ACTIVE - Permissive active</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PERMISSIVE_POISED">P_POISED</div>
+                        <span class="legend-label">PERMISSIVE_POISED - Permissive poised</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color POISED">POISED</div>
+                        <span class="legend-label">POISED - Ready for activation</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color PRIMED">PRIMED</div>
+                        <span class="legend-label">PRIMED - Primed for activity</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color LOW_PRIMED">LOW_PRIM</div>
+                        <span class="legend-label">LOW_PRIMED - Low primed state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color QUIESCENT">QUIESC</div>
+                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                    </div>
+                </div>
             </div>
         </div>
 
