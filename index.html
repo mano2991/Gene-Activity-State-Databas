@@ -830,7 +830,10 @@
             <div class="heatmap-controls">
                 <div class="control-group">
                     <label>Search Gene:</label>
-                    <input type="text" id="heatmapSearch" placeholder="Enter gene name to highlight and press Enter..." onkeypress="if(event.key==='Enter') searchInHeatmap()">
+                    <div class="input-wrapper" style="flex: 1;">
+                        <input type="text" id="heatmapSearch" placeholder="Enter gene name(s)..." style="width: 100%;" oninput="handleHeatmapInput(event)" onkeydown="handleHeatmapKeyDown(event)">
+                        <div id="heatmap-autocomplete-list" class="autocomplete-items"></div>
+                    </div>
                     <button class="btn btn-search" onclick="searchInHeatmap()">Find</button>
                 </div>
                 <div class="control-group">
@@ -955,6 +958,7 @@
 
     <script>
         let geneData = [];
+        let currentHeatmapData = [];
         const stages = ['E10', 'E11', 'E12', 'E13', 'E14', 'E15', 'E16', 'P0'];
         let currentFocus = -1;
         let currentTab = 'home';
@@ -1006,6 +1010,7 @@
 
                 const csvText = await response.text();
                 parseCSV(csvText);
+                currentHeatmapData = geneData;
 
                 document.getElementById('loadingSection').style.display = 'none';
 
@@ -1162,7 +1167,10 @@
             except the one passed as an argument:*/
             const x = document.getElementsByClassName("autocomplete-items");
             for (let i = 0; i < x.length; i++) {
-                if (elmnt != x[i] && elmnt != document.getElementById("geneInput") && elmnt != document.getElementById("networkSearchInput")) {
+                if (elmnt != x[i] && 
+                    elmnt != document.getElementById("geneInput") && 
+                    elmnt != document.getElementById("networkSearchInput") &&
+                    elmnt != document.getElementById("heatmapSearch")) {
                     x[i].innerHTML = "";
                 }
             }
@@ -1298,7 +1306,7 @@
         }
 
         function renderHeatmap() {
-            if (geneData.length === 0) return;
+            if (currentHeatmapData.length === 0) return;
 
             const canvas = document.getElementById('heatmapCanvas');
             const ctx = canvas.getContext('2d');
@@ -1306,13 +1314,20 @@
             const startIdx = parseInt(document.getElementById('startGene').value) || 0;
             let endIdx = parseInt(document.getElementById('endGene').value) || 100;
 
-            if (endIdx > geneData.length) endIdx = geneData.length;
+            if (endIdx > currentHeatmapData.length) endIdx = currentHeatmapData.length;
             if (startIdx >= endIdx) {
-                alert('Start index must be less than end index');
+                // If filtering makes the list smaller than startIdx, reset to 0
+                if (currentHeatmapData.length > 0) {
+                     document.getElementById('startGene').value = 0;
+                     document.getElementById('endGene').value = Math.min(100, currentHeatmapData.length);
+                     renderHeatmap(); // Recurse once
+                     return;
+                }
+                // alert('Start index must be less than end index');
                 return;
             }
 
-            const genesSubset = geneData.slice(startIdx, endIdx);
+            const genesSubset = currentHeatmapData.slice(startIdx, endIdx);
             const numGenes = genesSubset.length;
             const numStages = stages.length;
 
@@ -1338,9 +1353,10 @@
                 const y = 30 + (geneIdx * cellSize);
 
                 // Draw gene label
-                // Draw gene label
-                ctx.font = highlightedGeneIndex === (startIdx + geneIdx) ? 'bold 24px Arial' : '28px Arial';
-                ctx.fillStyle = highlightedGeneIndex === (startIdx + geneIdx) ? '#e83e8c' : '#333';
+                // No highlight logic needed for filtered view, or we can keep it if we search within results
+                // Simplified: just draw standard text
+                ctx.font = '28px Arial';
+                ctx.fillStyle = '#333';
                 ctx.textAlign = 'left';
                 const label = gene.symbol.length > 18 ? gene.symbol.substring(0, 18) + '...' : gene.symbol;
                 ctx.fillText(label, 5, y + cellSize / 2 + 4);
@@ -1352,13 +1368,6 @@
 
                     ctx.fillStyle = stateColors[state] || '#cccccc';
                     ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
-
-                    // Highlight if this is the searched gene
-                    if (highlightedGeneIndex === (startIdx + geneIdx)) {
-                        ctx.strokeStyle = '#e83e8c';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
-                    }
                 });
             });
 
@@ -1382,39 +1391,130 @@
             };
         }
 
+        // Heatmap Autocomplete
+        function handleHeatmapInput(event) {
+            const input = event.target;
+            const fullVal = input.value;
+            const cursorPos = input.selectionStart;
+
+            closeAllLists();
+
+            const beforeCursor = fullVal.substring(0, cursorPos);
+            const lastCommaIndex = beforeCursor.lastIndexOf(',');
+            const currentGene = beforeCursor.substring(lastCommaIndex + 1).trim();
+
+            if (!currentGene || currentGene.length < 1) {
+                return false;
+            }
+
+            currentFocus = -1;
+
+            const matches = geneData.filter(gene =>
+                gene.symbol.toLowerCase().includes(currentGene.toLowerCase())
+            ).slice(0, 10);
+
+            if (matches.length === 0) return;
+
+            const listDiv = document.getElementById('heatmap-autocomplete-list');
+            listDiv.innerHTML = '';
+
+            matches.forEach(gene => {
+                const div = document.createElement('div');
+
+                const index = gene.symbol.toLowerCase().indexOf(currentGene.toLowerCase());
+                const before = gene.symbol.substring(0, index);
+                const match = gene.symbol.substring(index, index + currentGene.length);
+                const after = gene.symbol.substring(index + currentGene.length);
+
+                div.innerHTML = `${before}<span class="match-highlight">${match}</span>${after}`;
+                div.addEventListener('click', function() {
+                    const afterCursor = fullVal.substring(cursorPos);
+                    const nextCommaIndex = afterCursor.indexOf(',');
+
+                    let newValue;
+                    if (lastCommaIndex === -1) {
+                        if (nextCommaIndex === -1) {
+                            newValue = gene.symbol;
+                        } else {
+                            newValue = gene.symbol + afterCursor.substring(nextCommaIndex);
+                        }
+                    } else {
+                        const beforeCurrentGene = fullVal.substring(0, lastCommaIndex + 1) + ' ';
+                        if (nextCommaIndex === -1) {
+                            newValue = beforeCurrentGene + gene.symbol;
+                        } else {
+                            newValue = beforeCurrentGene + gene.symbol + afterCursor.substring(nextCommaIndex);
+                        }
+                    }
+
+                    input.value = newValue;
+
+                    const newCursorPos = newValue.indexOf(gene.symbol) + gene.symbol.length;
+                    input.setSelectionRange(newCursorPos, newCursorPos);
+
+                    closeAllLists();
+                    input.focus();
+                });
+
+                listDiv.appendChild(div);
+            });
+        }
+
+        function handleHeatmapKeyDown(event) {
+            let list = document.getElementById('heatmap-autocomplete-list');
+            let items = list ? list.getElementsByTagName('div') : [];
+
+            if (event.keyCode === 40) { // Down
+                currentFocus++;
+                addActive(items);
+            } else if (event.keyCode === 38) { // Up
+                currentFocus--;
+                addActive(items);
+            } else if (event.keyCode === 13) { // Enter
+                event.preventDefault();
+                if (currentFocus > -1 && items[currentFocus]) {
+                    items[currentFocus].click();
+                } else {
+                    searchInHeatmap();
+                }
+            } else if (event.keyCode === 27) { // Escape
+                closeAllLists();
+            }
+        }
+
         function searchInHeatmap() {
-            const searchTerm = document.getElementById('heatmapSearch').value.trim().toLowerCase();
-            if (!searchTerm) {
-                highlightedGeneIndex = -1;
+            const input = document.getElementById('heatmapSearch').value.trim();
+            
+            // If empty, reset to full list
+            if (!input) {
+                currentHeatmapData = geneData;
+                document.getElementById('startGene').value = 4000;
+                document.getElementById('endGene').value = 4100;
                 renderHeatmap();
                 return;
             }
 
-            const foundIndex = geneData.findIndex(gene =>
-                gene.symbol.toLowerCase() === searchTerm
-            );
+            const searchTerms = input.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+            
+            if (searchTerms.length === 0) return;
 
-            if (foundIndex !== -1) {
-                highlightedGeneIndex = foundIndex;
+            // Filter geneData - EXACT MATCH to avoid pseudogenes (e.g., Tubb2a vs Tubb2a-ps2)
+            const filtered = geneData.filter(gene => {
+                const symbol = gene.symbol.toLowerCase();
+                return searchTerms.some(term => symbol === term);
+            });
 
-                // Update range to show the gene
-                const startIdx = Math.max(0, foundIndex - 50);
-                const endIdx = Math.min(geneData.length, foundIndex + 50);
-
-                document.getElementById('startGene').value = startIdx;
-                document.getElementById('endGene').value = endIdx;
-
-                renderHeatmap();
-                // Scroll the heatmap container to top
-                document.querySelector('.heatmap-container').scrollTop = 0;
-                document.getElementById('heatmapSearch').style.backgroundColor = '#d4edda';
-                setTimeout(() => {
-                    document.getElementById('heatmapSearch').style.backgroundColor = '';
-                }, 1000);
-            } else {
-                alert('Gene not found: ' + searchTerm);
-                highlightedGeneIndex = -1;
+            if (filtered.length === 0) {
+                alert('No matching genes found.');
+                return;
             }
+
+            // Update current data and view
+            currentHeatmapData = filtered;
+            document.getElementById('startGene').value = 0;
+            document.getElementById('endGene').value = filtered.length;
+            
+            renderHeatmap();
         }
 
         // Network Search Autocomplete
