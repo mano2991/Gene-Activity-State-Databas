@@ -731,27 +731,19 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <h3>🔍 Gene Search</h3>
-                    <p>Search for individual genes or multiple genes at once. Features intelligent autocomplete suggestions as you type, supporting comma-separated queries for batch searches.</p>
+                    <p>Search for individual genes or multiple genes at once. Features intelligent autocomplete suggestions and batch search capabilities.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🗺️ Interactive Heatmap</h3>
-                    <p>Visualize all 23,000+ genes across developmental stages in a comprehensive heatmap. Zoom, pan, and search to explore patterns and trends in gene activity.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📊 Activity States</h3>
-                    <p>Seven distinct activity states: ACTIVE, PERMISSIVE_ACTIVE, PERMISSIVE_POISED, POISED, PRIMED, LOW_PRIMED, and QUIESCENT - each with unique characteristics.</p>
+                    <p>Visualize 23,000+ genes across developmental stages. Filter by gene name to see specific patterns and export high-resolution views.</p>
                 </div>
                 <div class="feature-card">
                     <h3>🕸️ Network Analysis</h3>
-                    <p>Coming soon: Explore relationships and interactions between genes through network visualization and analysis tools.</p>
+                    <p>Visualize hierarchical relationships between genes, developmental stages, and histone marks. Includes 300 DPI export for publications.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>📈 Developmental Stages</h3>
-                    <p>Track gene activity across 8 developmental time points from E10 to P0, providing insights into temporal gene expression patterns.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>💾 Export Data</h3>
-                    <p>Export search results and visualizations for further analysis. All data sourced from comprehensive genomic studies.</p>
+                    <h3>🔮 Adult State Prediction</h3>
+                    <p>Utilizes Markov Chain statistical modeling to predict the likely activity state of genes in the Adult stage based on their E10-P0 trajectory.</p>
                 </div>
             </div>
         </div>
@@ -918,9 +910,7 @@
         </div>
 
         <div class="footer">
-            Gene Activity State Database | Data visualization tool for developmental stage analysis<br>
-            Released under the MIT License<br>
-            Developed by <a href="https://github.com/mano2991" target="_blank" style="color: #20558a; text-decoration: none; font-weight: bold;">Manoj</a>
+            Gene Activity State Database | Data visualization tool for developmental stage analysis<br> Released under the MIT License<br> Developed by <a href="https://github.com/mano2991" target="_blank" style="color: #20558a; text-decoration: none; font-weight: bold;">Manoj</a>
         </div>
     </div>
 
@@ -980,6 +970,9 @@
                 parseCSV(csvText);
                 currentHeatmapData = geneData;
 
+                // Train prediction model on loaded data
+                trainPredictionModel();
+
                 document.getElementById('loadingSection').style.display = 'none';
 
                 document.getElementById('dataInfo').innerHTML =
@@ -997,6 +990,54 @@
                 document.getElementById('dataInfo').innerHTML =
                     '<div class="error-message">⚠️ Error loading data from GitHub. Please check your internet connection and try refreshing the page.</div>';
             }
+        }
+
+        // --- Prediction Logic ---
+        let transitionProbs = {};
+
+        function trainPredictionModel() {
+            let transitions = {};
+
+            // Iterate all genes to learn E10->P0 patterns
+            geneData.forEach(gene => {
+                for (let i = 0; i < stages.length - 1; i++) {
+                    let curr = gene.states[stages[i]];
+                    let next = gene.states[stages[i + 1]];
+
+                    if (!curr || !next || curr === 'N/A' || next === 'N/A') continue;
+
+                    if (!transitions[curr]) transitions[curr] = {};
+                    if (!transitions[curr][next]) transitions[curr][next] = 0;
+                    transitions[curr][next]++;
+                }
+            });
+
+            // Calculate probabilities
+            for (let state in transitions) {
+                let total = 0;
+                for (let next in transitions[state]) total += transitions[state][next];
+
+                transitionProbs[state] = {};
+                for (let next in transitions[state]) {
+                    transitionProbs[state][next] = transitions[state][next] / total;
+                }
+            }
+            console.log("Prediction model trained locally.");
+        }
+
+        function predictAdult(p0State) {
+            if (!p0State || p0State === 'N/A' || !transitionProbs[p0State]) return p0State;
+
+            let bestNext = p0State;
+            let maxProb = -1;
+
+            for (let next in transitionProbs[p0State]) {
+                if (transitionProbs[p0State][next] > maxProb) {
+                    maxProb = transitionProbs[p0State][next];
+                    bestNext = next;
+                }
+            }
+            return bestNext;
         }
 
         function parseCSV(csvText) {
@@ -1047,17 +1088,17 @@
             matches.sort((a, b) => {
                 const aSym = a.symbol.toLowerCase();
                 const bSym = b.symbol.toLowerCase();
-                
+
                 // 1. Exact match first
                 if (aSym === term && bSym !== term) return -1;
                 if (bSym === term && aSym !== term) return 1;
-                
+
                 // 2. Starts with second
                 const aStart = aSym.startsWith(term);
                 const bStart = bSym.startsWith(term);
                 if (aStart && !bStart) return -1;
                 if (!aStart && bStart) return 1;
-                
+
                 // 3. Alphabetical
                 return aSym.localeCompare(bSym);
             });
@@ -1157,8 +1198,8 @@
             except the one passed as an argument:*/
             const x = document.getElementsByClassName("autocomplete-items");
             for (let i = 0; i < x.length; i++) {
-                if (elmnt != x[i] && 
-                    elmnt != document.getElementById("geneInput") && 
+                if (elmnt != x[i] &&
+                    elmnt != document.getElementById("geneInput") &&
                     elmnt != document.getElementById("networkSearchInput") &&
                     elmnt != document.getElementById("heatmapSearch")) {
                     x[i].innerHTML = "";
@@ -1249,6 +1290,9 @@
                 tableHTML += `<th>${stage}</th>`;
             });
 
+            // Add Adult Prediction Header
+            tableHTML += `<th style="background-color: #1a4570; border-left: 3px solid white; color: #f75959;" title="Predicted state based on developmental history">Adult (Pred)</th>`;
+
             tableHTML += `
                                     </tr>
                                 </thead>
@@ -1260,6 +1304,12 @@
                 const state = gene.states[stage] || 'N/A';
                 tableHTML += `<td class="${state}">${state}</td>`;
             });
+
+            // Add Adult Prediction Cell
+            const p0 = gene.states['P0'];
+            const adult = predictAdult(p0);
+            // Added color: red to highlight the prediction
+            tableHTML += `<td class="${adult}" style="border-left: 3px solid #d4d4d4; opacity: 0.9; font-style: italic; color: red; font-weight: bold;">${adult}</td>`;
 
             tableHTML += `
                                     </tr>
@@ -1308,10 +1358,10 @@
             if (startIdx >= endIdx) {
                 // If filtering makes the list smaller than startIdx, reset to 0
                 if (currentHeatmapData.length > 0) {
-                     document.getElementById('startGene').value = 0;
-                     document.getElementById('endGene').value = Math.min(100, currentHeatmapData.length);
-                     renderHeatmap(); // Recurse once
-                     return;
+                    document.getElementById('startGene').value = 0;
+                    document.getElementById('endGene').value = Math.min(100, currentHeatmapData.length);
+                    renderHeatmap(); // Recurse once
+                    return;
                 }
                 // alert('Start index must be less than end index');
                 return;
@@ -1408,17 +1458,17 @@
             matches.sort((a, b) => {
                 const aSym = a.symbol.toLowerCase();
                 const bSym = b.symbol.toLowerCase();
-                
+
                 // 1. Exact match first
                 if (aSym === term && bSym !== term) return -1;
                 if (bSym === term && aSym !== term) return 1;
-                
+
                 // 2. Starts with second
                 const aStart = aSym.startsWith(term);
                 const bStart = bSym.startsWith(term);
                 if (aStart && !bStart) return -1;
                 if (!aStart && bStart) return 1;
-                
+
                 // 3. Alphabetical
                 return aSym.localeCompare(bSym);
             });
@@ -1496,7 +1546,7 @@
 
         function searchInHeatmap() {
             const input = document.getElementById('heatmapSearch').value.trim();
-            
+
             // If empty, reset to full list
             if (!input) {
                 currentHeatmapData = geneData;
@@ -1507,7 +1557,7 @@
             }
 
             const searchTerms = input.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
-            
+
             if (searchTerms.length === 0) return;
 
             // Filter geneData - EXACT MATCH to avoid pseudogenes (e.g., Tubb2a vs Tubb2a-ps2)
@@ -1525,7 +1575,7 @@
             currentHeatmapData = filtered;
             document.getElementById('startGene').value = 0;
             document.getElementById('endGene').value = filtered.length;
-            
+
             renderHeatmap();
         }
 
@@ -1550,17 +1600,17 @@
             matches.sort((a, b) => {
                 const aSym = a.symbol.toLowerCase();
                 const bSym = b.symbol.toLowerCase();
-                
+
                 // 1. Exact match first
                 if (aSym === term && bSym !== term) return -1;
                 if (bSym === term && aSym !== term) return 1;
-                
+
                 // 2. Starts with second
                 const aStart = aSym.startsWith(term);
                 const bStart = bSym.startsWith(term);
                 if (aStart && !bStart) return -1;
                 if (!aStart && bStart) return 1;
-                
+
                 // 3. Alphabetical
                 return aSym.localeCompare(bSym);
             });
