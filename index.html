@@ -450,15 +450,15 @@
             font-weight: bold;
         }
         
-        .PERMISSIVE_ACTIVE {
-            background-color: #17a2b8;
+        .REFRACTORY {
+            background-color: #dc3545;
             color: white;
             font-weight: bold;
         }
-        
-        .PERMISSIVE_POISED {
-            background-color: #ffc107;
-            color: #000;
+
+        .TRANSCRIBE {
+            background-color: #17a2b8;
+            color: white;
             font-weight: bold;
         }
         
@@ -474,11 +474,6 @@
             font-weight: bold;
         }
         
-        .LOW_PRIMED {
-            background-color: #6f42c1;
-            color: white;
-            font-weight: bold;
-        }
         
         .legend-section {
             background: white;
@@ -574,6 +569,81 @@
             margin-top: 20px;
             font-size: 14px;
         }
+        /* Toggle Switch Styles */
+        .toggle-group {
+            margin-bottom: 15px;
+        }
+
+        .toggle-group-label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .toggle-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .toggle-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 2px solid #d4d4d4;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            user-select: none;
+            transition: all 0.2s;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .toggle-chip.active {
+            background: #20558a;
+            color: white;
+            border-color: #20558a;
+        }
+
+        .toggle-chip.active .toggle-dot {
+            background: white;
+        }
+
+        .toggle-chip .toggle-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #999;
+            transition: background 0.2s;
+        }
+
+        .toggle-chip.state-chip.active {
+            border-color: var(--state-color);
+            background: var(--state-color);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .filter-actions .btn {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
+        .filter-summary {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
         /* Network Tab Styles */
         
         .network-placeholder {
@@ -719,7 +789,7 @@
                     <div class="stat-label">Developmental Stages</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">7</div>
+                    <div class="stat-number">6</div>
                     <div class="stat-label">Activity States</div>
                 </div>
                 <div class="stat-card">
@@ -781,32 +851,28 @@
                 <div class="legend-title">Activity State Legend</div>
                 <div class="legend-grid">
                     <div class="legend-item">
+                        <div class="legend-color QUIESCENT">QUIESC</div>
+                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color REFRACTORY">REFRAC</div>
+                        <span class="legend-label">REFRACTORY - Refractory state</span>
+                    </div>
+                    <div class="legend-item">
                         <div class="legend-color ACTIVE">ACTIVE</div>
                         <span class="legend-label">ACTIVE - Highly active state</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color PERMISSIVE_ACTIVE">P_ACTIVE</div>
-                        <span class="legend-label">PERMISSIVE_ACTIVE - Permissive active</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color PERMISSIVE_POISED">P_POISED</div>
-                        <span class="legend-label">PERMISSIVE_POISED - Permissive poised</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color POISED">POISED</div>
-                        <span class="legend-label">POISED - Ready for activation</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color PRIMED">PRIMED</div>
                         <span class="legend-label">PRIMED - Primed for activity</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color LOW_PRIMED">LOW_PRIM</div>
-                        <span class="legend-label">LOW_PRIMED - Low primed state</span>
+                        <div class="legend-color TRANSCRIBE">TRANSC</div>
+                        <span class="legend-label">TRANSCRIBE - Transcribing state</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color QUIESCENT">QUIESC</div>
-                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                        <div class="legend-color POISED">POISED</div>
+                        <span class="legend-label">POISED - Ready for activation</span>
                     </div>
                 </div>
             </div>
@@ -828,10 +894,28 @@
                     </div>
                     <button class="btn btn-search" onclick="searchInHeatmap()">Find</button>
                 </div>
+
+                <div class="toggle-group">
+                    <span class="toggle-group-label">Filter by Stage:</span>
+                    <div class="toggle-row" id="stageToggles"></div>
+                </div>
+
+                <div class="toggle-group">
+                    <span class="toggle-group-label">Filter by State:</span>
+                    <div class="toggle-row" id="stateToggles"></div>
+                    <div class="filter-actions">
+                        <button class="btn" onclick="selectAllToggles('stage')">All Stages</button>
+                        <button class="btn" onclick="selectAllToggles('state')">All States</button>
+                        <button class="btn" onclick="clearAllToggles()">Clear Filters</button>
+                        <button class="btn btn-search" onclick="applyHeatmapFilters()">Apply Filters</button>
+                    </div>
+                    <div class="filter-summary" id="filterSummary"></div>
+                </div>
+
                 <div class="control-group">
                     <label>Display Range:</label>
-                    <input type="number" id="startGene" placeholder="Start (4000)" value="4000" min="0">
-                    <input type="number" id="endGene" placeholder="End (4100)" value="4100" min="1">
+                    <input type="number" id="startGene" placeholder="Start (0)" value="0" min="0">
+                    <input type="number" id="endGene" placeholder="End (100)" value="100" min="1">
                     <button class="btn" onclick="renderHeatmap()">Update View</button>
                 </div>
                 <div class="control-group">
@@ -849,32 +933,28 @@
                 <div class="legend-title">Activity State Legend</div>
                 <div class="legend-grid">
                     <div class="legend-item">
+                        <div class="legend-color QUIESCENT">QUIESC</div>
+                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color REFRACTORY">REFRAC</div>
+                        <span class="legend-label">REFRACTORY - Refractory state</span>
+                    </div>
+                    <div class="legend-item">
                         <div class="legend-color ACTIVE">ACTIVE</div>
                         <span class="legend-label">ACTIVE - Highly active state</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color PERMISSIVE_ACTIVE">P_ACTIVE</div>
-                        <span class="legend-label">PERMISSIVE_ACTIVE - Permissive active</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color PERMISSIVE_POISED">P_POISED</div>
-                        <span class="legend-label">PERMISSIVE_POISED - Permissive poised</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color POISED">POISED</div>
-                        <span class="legend-label">POISED - Ready for activation</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color PRIMED">PRIMED</div>
                         <span class="legend-label">PRIMED - Primed for activity</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color LOW_PRIMED">LOW_PRIM</div>
-                        <span class="legend-label">LOW_PRIMED - Low primed state</span>
+                        <div class="legend-color TRANSCRIBE">TRANSC</div>
+                        <span class="legend-label">TRANSCRIBE - Transcribing state</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color QUIESCENT">QUIESC</div>
-                        <span class="legend-label">QUIESCENT - Inactive state</span>
+                        <div class="legend-color POISED">POISED</div>
+                        <span class="legend-label">POISED - Ready for activation</span>
                     </div>
                 </div>
             </div>
@@ -918,19 +998,21 @@
         let geneData = [];
         let currentHeatmapData = [];
         const stages = ['E10', 'E11', 'E12', 'E13', 'E14', 'E15', 'E16', 'P0'];
+        const allStates = ['QUIESCENT', 'REFRACTORY', 'ACTIVE', 'PRIMED', 'TRANSCRIBE', 'POISED'];
+        let activeStages = new Set(stages);
+        let activeStatesFilter = new Set(allStates);
         let currentFocus = -1;
         let currentTab = 'home';
 
         const CSV_URL = 'https://raw.githubusercontent.com/mano2991/Gene-Activity-State-Databas/main/Master_RAG_Activity.csv';
 
         const stateColors = {
-            'ACTIVE': '#28a745',
             'QUIESCENT': '#6c757d',
-            'PERMISSIVE_ACTIVE': '#17a2b8',
-            'PERMISSIVE_POISED': '#ffc107',
-            'POISED': '#fd7e14',
+            'REFRACTORY': '#dc3545',
+            'ACTIVE': '#28a745',
             'PRIMED': '#e83e8c',
-            'LOW_PRIMED': '#6f42c1'
+            'TRANSCRIBE': '#17a2b8',
+            'POISED': '#fd7e14'
         };
 
         // Tab switching
@@ -982,6 +1064,7 @@
                 document.getElementById('statGeneCount').textContent = geneData.length.toLocaleString();
                 document.getElementById('statDataPoints').textContent = (geneData.length * 8).toLocaleString();
 
+                initToggles();
                 document.getElementById('geneInput').focus();
 
             } catch (error) {
@@ -1291,7 +1374,7 @@
             });
 
             // Add Adult Prediction Header
-            tableHTML += `<th style="background-color: #1a4570; border-left: 3px solid white; color: #f75959;" title="Predicted state based on developmental history">Adult (Pred)</th>`;
+            tableHTML += `<th style="background-color: #1a4570; border-left: 3px solid white;" title="Predicted state based on developmental history">Adult (Pred)</th>`;
 
             tableHTML += `
                                     </tr>
@@ -1308,8 +1391,7 @@
             // Add Adult Prediction Cell
             const p0 = gene.states['P0'];
             const adult = predictAdult(p0);
-            // Added color: red to highlight the prediction
-            tableHTML += `<td class="${adult}" style="border-left: 3px solid #d4d4d4; opacity: 0.9; font-style: italic; color: red; font-weight: bold;">${adult}</td>`;
+            tableHTML += `<td class="${adult}" style="border-left: 3px solid #d4d4d4;">${adult}</td>`;
 
             tableHTML += `
                                     </tr>
@@ -1331,6 +1413,106 @@
             document.getElementById('geneInput').value = '';
             closeAllLists();
             document.getElementById('geneInput').focus();
+        }
+
+        // Toggle filter functions
+        function initToggles() {
+            const stageContainer = document.getElementById('stageToggles');
+            const stateContainer = document.getElementById('stateToggles');
+
+            stages.forEach(stage => {
+                const chip = document.createElement('div');
+                chip.className = 'toggle-chip active';
+                chip.dataset.value = stage;
+                chip.dataset.type = 'stage';
+                chip.innerHTML = `<span class="toggle-dot"></span>${stage}`;
+                chip.onclick = () => toggleChip(chip);
+                stageContainer.appendChild(chip);
+            });
+
+            allStates.forEach(state => {
+                const color = stateColors[state];
+                const chip = document.createElement('div');
+                chip.className = 'toggle-chip state-chip active';
+                chip.dataset.value = state;
+                chip.dataset.type = 'state';
+                chip.style.setProperty('--state-color', color);
+                chip.innerHTML = `<span class="toggle-dot" style="background:white;"></span>${state}`;
+                chip.onclick = () => toggleChip(chip);
+                stateContainer.appendChild(chip);
+            });
+
+            updateFilterSummary();
+        }
+
+        function toggleChip(chip) {
+            chip.classList.toggle('active');
+            const type = chip.dataset.type;
+            const value = chip.dataset.value;
+
+            if (type === 'stage') {
+                if (chip.classList.contains('active')) {
+                    activeStages.add(value);
+                } else {
+                    activeStages.delete(value);
+                }
+            } else {
+                if (chip.classList.contains('active')) {
+                    activeStatesFilter.add(value);
+                } else {
+                    activeStatesFilter.delete(value);
+                }
+            }
+            updateFilterSummary();
+        }
+
+        function selectAllToggles(type) {
+            const chips = document.querySelectorAll(`.toggle-chip[data-type="${type}"]`);
+            chips.forEach(chip => {
+                chip.classList.add('active');
+                if (type === 'stage') activeStages.add(chip.dataset.value);
+                else activeStatesFilter.add(chip.dataset.value);
+            });
+            updateFilterSummary();
+        }
+
+        function clearAllToggles() {
+            document.querySelectorAll('.toggle-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            activeStages.clear();
+            activeStatesFilter.clear();
+            updateFilterSummary();
+        }
+
+        function updateFilterSummary() {
+            const summary = document.getElementById('filterSummary');
+            if (!summary) return;
+            summary.textContent = `Stages: ${activeStages.size}/${stages.length} selected | States: ${activeStatesFilter.size}/${allStates.length} selected`;
+        }
+
+        function applyHeatmapFilters() {
+            if (activeStages.size === 0 || activeStatesFilter.size === 0) {
+                alert('Please select at least one stage and one state.');
+                return;
+            }
+
+            // Filter genes: keep gene only if it has a matching state in ALL selected stages
+            currentHeatmapData = geneData.filter(gene => {
+                for (const stage of activeStages) {
+                    const state = gene.states[stage];
+                    if (!activeStatesFilter.has(state)) return false;
+                }
+                return true;
+            });
+
+            document.getElementById('startGene').value = 0;
+            document.getElementById('endGene').value = Math.min(100, currentHeatmapData.length);
+
+            const summary = document.getElementById('filterSummary');
+            summary.textContent = `Stages: ${activeStages.size}/${stages.length} selected | States: ${activeStatesFilter.size}/${allStates.length} selected | Genes matched: ${currentHeatmapData.length.toLocaleString()}`;
+
+            renderHeatmap();
         }
 
         // Heatmap functions
@@ -1356,20 +1538,22 @@
 
             if (endIdx > currentHeatmapData.length) endIdx = currentHeatmapData.length;
             if (startIdx >= endIdx) {
-                // If filtering makes the list smaller than startIdx, reset to 0
                 if (currentHeatmapData.length > 0) {
                     document.getElementById('startGene').value = 0;
                     document.getElementById('endGene').value = Math.min(100, currentHeatmapData.length);
-                    renderHeatmap(); // Recurse once
+                    renderHeatmap();
                     return;
                 }
-                // alert('Start index must be less than end index');
                 return;
             }
 
+            // Only show columns for active stages
+            const visibleStages = stages.filter(s => activeStages.has(s));
+            if (visibleStages.length === 0) return;
+
             const genesSubset = currentHeatmapData.slice(startIdx, endIdx);
             const numGenes = genesSubset.length;
-            const numStages = stages.length;
+            const numStages = visibleStages.length;
 
             // Set canvas size
             const labelWidth = 150;
@@ -1384,7 +1568,7 @@
             ctx.font = 'bold 24px Arial';
             ctx.fillStyle = '#20558a';
             ctx.textAlign = 'center';
-            stages.forEach((stage, i) => {
+            visibleStages.forEach((stage, i) => {
                 ctx.fillText(stage, labelWidth + (i * cellSize) + cellSize / 2, 20);
             });
 
@@ -1392,17 +1576,14 @@
             genesSubset.forEach((gene, geneIdx) => {
                 const y = 30 + (geneIdx * cellSize);
 
-                // Draw gene label
-                // No highlight logic needed for filtered view, or we can keep it if we search within results
-                // Simplified: just draw standard text
                 ctx.font = '28px Arial';
                 ctx.fillStyle = '#333';
                 ctx.textAlign = 'left';
                 const label = gene.symbol.length > 18 ? gene.symbol.substring(0, 18) + '...' : gene.symbol;
                 ctx.fillText(label, 5, y + cellSize / 2 + 4);
 
-                // Draw cells
-                stages.forEach((stage, stageIdx) => {
+                // Draw cells only for visible stages
+                visibleStages.forEach((stage, stageIdx) => {
                     const x = labelWidth + (stageIdx * cellSize);
                     const state = gene.states[stage];
 
@@ -1423,7 +1604,7 @@
 
                     if (geneIdx >= 0 && geneIdx < numGenes && stageIdx >= 0 && stageIdx < numStages) {
                         const gene = genesSubset[geneIdx];
-                        const stage = stages[stageIdx];
+                        const stage = visibleStages[stageIdx];
                         const state = gene.states[stage];
                         canvas.title = `${gene.symbol} - ${stage}: ${state}`;
                     }
