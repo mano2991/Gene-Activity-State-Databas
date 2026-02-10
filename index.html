@@ -644,6 +644,240 @@
             margin-top: 8px;
         }
 
+        /* Export Button */
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 10px 5px 10px 0;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        /* External Links */
+        .external-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .ext-link {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .ext-link:hover {
+            opacity: 0.8;
+        }
+
+        .ext-link.genecards { background: #2196F3; }
+        .ext-link.ncbi { background: #1565C0; }
+        .ext-link.ensembl { background: #6A1B9A; }
+        .ext-link.ucsc { background: #E65100; }
+
+        /* Bookmark */
+        .bookmark-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0 8px;
+            vertical-align: middle;
+            transition: transform 0.2s;
+        }
+
+        .bookmark-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .bookmarks-bar {
+            background: white;
+            padding: 15px 20px;
+            border: 1px solid #d4d4d4;
+            margin-bottom: 15px;
+        }
+
+        .bookmarks-bar-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #20558a;
+            margin-bottom: 8px;
+        }
+
+        .bookmark-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .bookmark-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #20558a;
+            cursor: pointer;
+        }
+
+        .bookmark-chip:hover {
+            background: #20558a;
+            color: white;
+        }
+
+        .bookmark-chip .remove-bookmark {
+            font-size: 14px;
+            margin-left: 2px;
+            cursor: pointer;
+        }
+
+        /* Transition Search */
+        .transition-section {
+            background: #f8f8f8;
+            padding: 20px;
+            border: 1px solid #d4d4d4;
+            margin-bottom: 20px;
+        }
+
+        .transition-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+
+        .transition-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .transition-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .transition-field select {
+            padding: 7px 10px;
+            border: 1px solid #a0a0a0;
+            font-size: 13px;
+            min-width: 140px;
+        }
+
+        .transition-arrow {
+            font-size: 24px;
+            color: #20558a;
+            padding-bottom: 4px;
+            font-weight: bold;
+        }
+
+        /* Statistics Tab */
+        .stats-section {
+            background: white;
+            padding: 25px;
+            border: 1px solid #d4d4d4;
+            margin-bottom: 20px;
+        }
+
+        .stats-section h2 {
+            color: #20558a;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comparison-grid select {
+            padding: 8px 12px;
+            border: 1px solid #a0a0a0;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+
+        .matrix-table th {
+            background: #20558a;
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #1a4570;
+            font-size: 12px;
+        }
+
+        .matrix-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #d4d4d4;
+            font-weight: 600;
+        }
+
+        .matrix-table td.row-header {
+            background: #f0f0f0;
+            text-align: left;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .matrix-cell-high { background: #c8e6c9; }
+        .matrix-cell-med { background: #fff9c4; }
+        .matrix-cell-low { background: #ffecb3; }
+        .matrix-cell-zero { background: #f5f5f5; color: #ccc; }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .share-btn:hover { background: #5a6268; }
+
         /* Network Tab Styles */
         
         .network-placeholder {
@@ -765,6 +999,7 @@
             <button class="tab-button" onclick="switchTab('search')">🔍 Search</button>
             <button class="tab-button" onclick="switchTab('heatmap')">🗺️ Heatmap</button>
             <button class="tab-button" onclick="switchTab('network')">🕸️ Network</button>
+            <button class="tab-button" onclick="switchTab('stats')">📊 Statistics</button>
         </div>
     </div>
 
@@ -832,6 +1067,15 @@
 
             <div id="dataInfo"></div>
 
+            <!-- Bookmarks Bar -->
+            <div class="bookmarks-bar" id="bookmarksBar" style="display:none;">
+                <div class="bookmarks-bar-title">Bookmarked Genes</div>
+                <div class="bookmark-chips" id="bookmarkChips"></div>
+                <button class="btn" onclick="searchBookmarkedGenes()" style="font-size:12px; padding:4px 10px;">Search All Bookmarks</button>
+                <button class="export-btn" onclick="exportBookmarks()" style="font-size:11px; padding:4px 10px; margin:0 0 0 5px;">Export Bookmarks CSV</button>
+                <button class="btn" onclick="clearBookmarks()" style="font-size:12px; padding:4px 10px; margin-left:5px; color:#dc3545; border-color:#dc3545;">Clear All</button>
+            </div>
+
             <div class="search-section">
                 <label class="search-label">Search for Gene Symbol(s):</label>
                 <div class="search-box">
@@ -841,11 +1085,42 @@
                     </div>
                     <button class="btn btn-search" onclick="searchGenes()">Search</button>
                     <button class="btn" onclick="clearResults()">Clear</button>
+                    <button class="share-btn" onclick="copyShareLink()" title="Copy shareable link">Share Link</button>
                 </div>
                 <p class="info-text">Start typing to see suggestions. Press Enter to search, or click on a suggestion.</p>
             </div>
 
+            <!-- Transition Search -->
+            <div class="transition-section">
+                <label class="search-label">State Transition Search</label>
+                <p class="info-text" style="margin-top:0; margin-bottom:10px;">Find genes that transition between specific states across developmental stages.</p>
+                <div class="transition-row">
+                    <div class="transition-field">
+                        <label>From Stage</label>
+                        <select id="transFromStage"></select>
+                    </div>
+                    <div class="transition-field">
+                        <label>From State</label>
+                        <select id="transFromState"></select>
+                    </div>
+                    <div class="transition-arrow">&#8594;</div>
+                    <div class="transition-field">
+                        <label>To Stage</label>
+                        <select id="transToStage"></select>
+                    </div>
+                    <div class="transition-field">
+                        <label>To State</label>
+                        <select id="transToState"></select>
+                    </div>
+                    <button class="btn btn-search" onclick="searchTransition()">Find Genes</button>
+                </div>
+                <div id="transitionResults" style="margin-top:10px; font-size:13px; color:#666;"></div>
+            </div>
+
             <div id="results"></div>
+            <div style="margin-bottom:10px;">
+                <button class="export-btn" id="exportSearchBtn" style="display:none;" onclick="exportSearchResults()">Export Search Results CSV</button>
+            </div>
 
             <div class="legend-section">
                 <div class="legend-title">Activity State Legend</div>
@@ -927,6 +1202,7 @@
 
             <div class="heatmap-info">
                 <strong>Instructions:</strong> Use the controls above to navigate through the dataset. Enter start and end indices to view specific gene ranges. Search for a gene to highlight it in the heatmap. Hover over cells to see gene names and states.
+                <br><button class="export-btn" onclick="exportHeatmapCSV()" style="margin-top:10px;">Export Filtered Data CSV</button>
             </div>
 
             <div class="legend-section">
@@ -989,6 +1265,36 @@
             </div>
         </div>
 
+        <!-- STATISTICS TAB -->
+        <div id="stats-tab" class="tab-content">
+            <div class="header">
+                <h1>Dataset Statistics</h1>
+                <p class="subtitle">Overview of gene activity state distributions and stage-to-stage transitions</p>
+            </div>
+
+            <div class="stats-section">
+                <h2>State Distribution per Stage</h2>
+                <p style="font-size:13px; color:#666; margin-bottom:15px;">Number of genes in each activity state at every developmental stage.</p>
+                <div class="chart-container" id="distributionChart"></div>
+            </div>
+
+            <div class="stats-section">
+                <h2>Stage Comparison - Transition Matrix</h2>
+                <p style="font-size:13px; color:#666; margin-bottom:15px;">Select two stages to see how many genes transitioned between each state.</p>
+                <div class="comparison-grid">
+                    <div class="transition-field">
+                        <label>From Stage:</label>
+                        <select id="compareStageA" onchange="renderComparisonMatrix()"></select>
+                    </div>
+                    <div class="transition-field">
+                        <label>To Stage:</label>
+                        <select id="compareStageB" onchange="renderComparisonMatrix()"></select>
+                    </div>
+                </div>
+                <div id="comparisonMatrixContainer"></div>
+            </div>
+        </div>
+
         <div class="footer">
             Gene Activity State Database | Data visualization tool for developmental stage analysis<br> Released under the MIT License<br> Developed by <a href="https://github.com/mano2991" target="_blank" style="color: #20558a; text-decoration: none; font-weight: bold;">Manoj</a>
         </div>
@@ -1003,6 +1309,7 @@
         let activeStatesFilter = new Set(allStates);
         let currentFocus = -1;
         let currentTab = 'home';
+        let lastSearchResults = [];
 
         const CSV_URL = 'https://raw.githubusercontent.com/mano2991/Gene-Activity-State-Databas/main/Master_RAG_Activity.csv';
 
@@ -1033,9 +1340,15 @@
             document.getElementById(tabName + '-tab').classList.add('active');
             event.target.classList.add('active');
 
-            // Initialize heatmap when switching to heatmap tab
+            // Initialize views when switching tabs
             if (tabName === 'heatmap' && geneData.length > 0) {
                 setTimeout(() => renderHeatmap(), 100);
+            }
+            if (tabName === 'stats' && geneData.length > 0) {
+                setTimeout(() => {
+                    renderDistributionChart();
+                    renderComparisonMatrix();
+                }, 100);
             }
         }
 
@@ -1065,6 +1378,10 @@
                 document.getElementById('statDataPoints').textContent = (geneData.length * 8).toLocaleString();
 
                 initToggles();
+                initTransitionDropdowns();
+                initStatsTab();
+                renderBookmarksBar();
+                checkURLParams();
                 document.getElementById('geneInput').focus();
 
             } catch (error) {
@@ -1346,7 +1663,16 @@
                 drawNetwork(symbol);
             });
 
+            // Show/hide export button
+            lastSearchResults = foundGenesList;
+            document.getElementById('exportSearchBtn').style.display = foundCount > 0 ? 'inline-flex' : 'none';
+
+            // Update URL for sharing
             if (foundCount > 0) {
+                const url = new URL(window.location);
+                url.searchParams.set('gene', foundGenesList.join(','));
+                window.history.replaceState({}, '', url);
+
                 resultsDiv.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
@@ -1355,11 +1681,22 @@
         }
 
         function generateGeneTable(gene) {
+            const isBookmarked = getBookmarks().includes(gene.symbol);
+            const bookmarkIcon = isBookmarked ? '&#9733;' : '&#9734;';
             let tableHTML = `
                 <div class="gene-result">
                     <div class="gene-header">
-                        <div class="gene-name">${gene.symbol}</div>
+                        <div class="gene-name">
+                            <button class="bookmark-btn" onclick="toggleBookmark('${gene.symbol}', this)" title="Bookmark this gene">${bookmarkIcon}</button>
+                            ${gene.symbol}
+                        </div>
                         <div class="gene-info">Gene Symbol: ${gene.symbol} | Developmental Stages: E10-P0</div>
+                        <div class="external-links">
+                            <a class="ext-link genecards" href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=${gene.symbol}" target="_blank">GeneCards</a>
+                            <a class="ext-link ncbi" href="https://www.ncbi.nlm.nih.gov/gene/?term=${gene.symbol}[sym]+AND+mouse[orgn]" target="_blank">NCBI Gene</a>
+                            <a class="ext-link ensembl" href="https://www.ensembl.org/Mus_musculus/Gene/Summary?g=${gene.symbol}" target="_blank">Ensembl</a>
+                            <a class="ext-link ucsc" href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&position=${gene.symbol}" target="_blank">UCSC Browser</a>
+                        </div>
                     </div>
                     <div class="gene-content">
                         <!-- Heatmap/Table View -->
@@ -2100,6 +2437,413 @@
                         .text(d.data.name);
                 }
             });
+        }
+
+        // =====================================================
+        // CSV EXPORT FUNCTIONS
+        // =====================================================
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function genesToCSV(geneList) {
+            let csv = 'Gene,' + stages.join(',') + ',Adult_Predicted\n';
+            geneList.forEach(symbol => {
+                const gene = geneData.find(g => g.symbol === symbol);
+                if (!gene) return;
+                const row = [gene.symbol];
+                stages.forEach(s => row.push(gene.states[s] || 'N/A'));
+                row.push(predictAdult(gene.states['P0']));
+                csv += row.join(',') + '\n';
+            });
+            return csv;
+        }
+
+        function exportSearchResults() {
+            if (lastSearchResults.length === 0) return;
+            const csv = genesToCSV(lastSearchResults);
+            downloadCSV(csv, 'search_results.csv');
+        }
+
+        function exportHeatmapCSV() {
+            if (currentHeatmapData.length === 0) return;
+            const visibleStages = stages.filter(s => activeStages.has(s));
+            let csv = 'Gene,' + visibleStages.join(',') + '\n';
+            currentHeatmapData.forEach(gene => {
+                const row = [gene.symbol];
+                visibleStages.forEach(s => row.push(gene.states[s] || 'N/A'));
+                csv += row.join(',') + '\n';
+            });
+            downloadCSV(csv, 'heatmap_filtered_data.csv');
+        }
+
+        // =====================================================
+        // BOOKMARK FUNCTIONS
+        // =====================================================
+        function getBookmarks() {
+            return JSON.parse(localStorage.getItem('geneBookmarks') || '[]');
+        }
+
+        function saveBookmarks(bookmarks) {
+            localStorage.setItem('geneBookmarks', JSON.stringify(bookmarks));
+            renderBookmarksBar();
+        }
+
+        function toggleBookmark(symbol, btn) {
+            let bookmarks = getBookmarks();
+            const idx = bookmarks.indexOf(symbol);
+            if (idx === -1) {
+                bookmarks.push(symbol);
+                if (btn) btn.innerHTML = '&#9733;';
+            } else {
+                bookmarks.splice(idx, 1);
+                if (btn) btn.innerHTML = '&#9734;';
+            }
+            saveBookmarks(bookmarks);
+        }
+
+        function renderBookmarksBar() {
+            const bar = document.getElementById('bookmarksBar');
+            const chips = document.getElementById('bookmarkChips');
+            const bookmarks = getBookmarks();
+
+            if (bookmarks.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+
+            bar.style.display = 'block';
+            chips.innerHTML = '';
+            bookmarks.forEach(symbol => {
+                const chip = document.createElement('span');
+                chip.className = 'bookmark-chip';
+                chip.innerHTML = `<span onclick="searchSingleGene('${symbol}')">${symbol}</span><span class="remove-bookmark" onclick="event.stopPropagation(); toggleBookmark('${symbol}', null)">&times;</span>`;
+                chips.appendChild(chip);
+            });
+        }
+
+        function searchSingleGene(symbol) {
+            document.getElementById('geneInput').value = symbol;
+            searchGenes();
+        }
+
+        function searchBookmarkedGenes() {
+            const bookmarks = getBookmarks();
+            if (bookmarks.length === 0) return;
+            document.getElementById('geneInput').value = bookmarks.join(', ');
+            searchGenes();
+        }
+
+        function exportBookmarks() {
+            const bookmarks = getBookmarks();
+            if (bookmarks.length === 0) return;
+            const csv = genesToCSV(bookmarks);
+            downloadCSV(csv, 'bookmarked_genes.csv');
+        }
+
+        function clearBookmarks() {
+            localStorage.removeItem('geneBookmarks');
+            renderBookmarksBar();
+        }
+
+        // =====================================================
+        // STATE TRANSITION SEARCH
+        // =====================================================
+        function initTransitionDropdowns() {
+            const fromStage = document.getElementById('transFromStage');
+            const toStage = document.getElementById('transToStage');
+            const fromState = document.getElementById('transFromState');
+            const toState = document.getElementById('transToState');
+
+            stages.forEach(s => {
+                fromStage.innerHTML += `<option value="${s}">${s}</option>`;
+                toStage.innerHTML += `<option value="${s}">${s}</option>`;
+            });
+            toStage.value = 'P0';
+
+            allStates.forEach(s => {
+                fromState.innerHTML += `<option value="${s}">${s}</option>`;
+                toState.innerHTML += `<option value="${s}">${s}</option>`;
+            });
+        }
+
+        function searchTransition() {
+            const fromStage = document.getElementById('transFromStage').value;
+            const toStage = document.getElementById('transToStage').value;
+            const fromState = document.getElementById('transFromState').value;
+            const toState = document.getElementById('transToState').value;
+
+            const matches = geneData.filter(gene =>
+                gene.states[fromStage] === fromState && gene.states[toStage] === toState
+            );
+
+            const resultDiv = document.getElementById('transitionResults');
+
+            if (matches.length === 0) {
+                resultDiv.innerHTML = '<span style="color:#dc3545;">No genes found matching this transition.</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = `<strong style="color:#28a745;">${matches.length.toLocaleString()} gene(s) found:</strong> ${fromState} (${fromStage}) &#8594; ${toState} (${toStage})`;
+
+            // Show results in main results area
+            const resultsDiv = document.getElementById('results');
+            let html = '';
+            const displayGenes = matches.slice(0, 50);
+            if (matches.length > 50) {
+                html += `<div class="data-info">Showing first 50 of ${matches.length} results. Use export to get all.</div>`;
+            }
+            displayGenes.forEach(gene => {
+                html += generateGeneTable(gene);
+            });
+            resultsDiv.innerHTML = html;
+
+            // Draw networks
+            displayGenes.forEach(gene => drawNetwork(gene.symbol));
+
+            // Store for export
+            lastSearchResults = matches.map(g => g.symbol);
+            document.getElementById('exportSearchBtn').style.display = 'inline-flex';
+
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // =====================================================
+        // STATISTICS TAB
+        // =====================================================
+        function initStatsTab() {
+            // Populate comparison dropdowns
+            const selA = document.getElementById('compareStageA');
+            const selB = document.getElementById('compareStageB');
+            stages.forEach(s => {
+                selA.innerHTML += `<option value="${s}">${s}</option>`;
+                selB.innerHTML += `<option value="${s}">${s}</option>`;
+            });
+            selA.value = 'E10';
+            selB.value = 'P0';
+
+            renderDistributionChart();
+            renderComparisonMatrix();
+        }
+
+        function renderDistributionChart() {
+            const container = document.getElementById('distributionChart');
+            container.innerHTML = '';
+
+            if (geneData.length === 0) return;
+
+            // Calculate counts
+            const data = [];
+            stages.forEach(stage => {
+                allStates.forEach(state => {
+                    const count = geneData.filter(g => g.states[stage] === state).length;
+                    data.push({ stage, state, count });
+                });
+            });
+
+            const margin = { top: 30, right: 20, bottom: 60, left: 60 };
+            const width = 900 - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            const svg = d3.select('#distributionChart')
+                .append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            const x0 = d3.scaleBand().domain(stages).range([0, width]).padding(0.2);
+            const x1 = d3.scaleBand().domain(allStates).range([0, x0.bandwidth()]).padding(0.05);
+            const y = d3.scaleLinear().domain([0, d3.max(data, d => d.count)]).nice().range([height, 0]);
+
+            // X axis
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x0))
+                .selectAll('text')
+                .style('font-size', '12px')
+                .style('font-weight', 'bold');
+
+            // Y axis
+            svg.append('g')
+                .call(d3.axisLeft(y).ticks(8))
+                .selectAll('text')
+                .style('font-size', '11px');
+
+            // Y axis label
+            svg.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', -50)
+                .attr('x', -height / 2)
+                .attr('text-anchor', 'middle')
+                .style('font-size', '13px')
+                .style('fill', '#333')
+                .text('Number of Genes');
+
+            // Bars
+            const stageGroups = svg.selectAll('.stage-group')
+                .data(stages)
+                .join('g')
+                .attr('transform', d => `translate(${x0(d)},0)`);
+
+            stageGroups.selectAll('rect')
+                .data(stage => allStates.map(state => {
+                    const count = data.find(d => d.stage === stage && d.state === state).count;
+                    return { state, count };
+                }))
+                .join('rect')
+                .attr('x', d => x1(d.state))
+                .attr('y', d => y(d.count))
+                .attr('width', x1.bandwidth())
+                .attr('height', d => height - y(d.count))
+                .attr('fill', d => stateColors[d.state]);
+
+            // Legend
+            const legend = svg.selectAll('.legend')
+                .data(allStates)
+                .join('g')
+                .attr('transform', (d, i) => `translate(${i * 130}, ${height + 35})`);
+
+            legend.append('rect')
+                .attr('width', 12)
+                .attr('height', 12)
+                .attr('fill', d => stateColors[d]);
+
+            legend.append('text')
+                .attr('x', 16)
+                .attr('y', 10)
+                .style('font-size', '10px')
+                .style('fill', '#333')
+                .text(d => d);
+        }
+
+        function renderComparisonMatrix() {
+            const stageA = document.getElementById('compareStageA').value;
+            const stageB = document.getElementById('compareStageB').value;
+            const container = document.getElementById('comparisonMatrixContainer');
+
+            if (geneData.length === 0) {
+                container.innerHTML = '<p style="color:#666;">Data not loaded yet.</p>';
+                return;
+            }
+
+            // Build transition counts
+            const matrix = {};
+            allStates.forEach(from => {
+                matrix[from] = {};
+                allStates.forEach(to => {
+                    matrix[from][to] = 0;
+                });
+            });
+
+            geneData.forEach(gene => {
+                const from = gene.states[stageA];
+                const to = gene.states[stageB];
+                if (matrix[from] && matrix[from][to] !== undefined) {
+                    matrix[from][to]++;
+                }
+            });
+
+            // Find max for coloring
+            let maxCount = 0;
+            allStates.forEach(from => {
+                allStates.forEach(to => {
+                    if (matrix[from][to] > maxCount) maxCount = matrix[from][to];
+                });
+            });
+
+            let html = `<p style="font-size:13px; color:#333; margin-bottom:8px;"><strong>${stageA}</strong> (rows) &#8594; <strong>${stageB}</strong> (columns)</p>`;
+            html += '<table class="matrix-table"><thead><tr><th>' + stageA + ' \\ ' + stageB + '</th>';
+            allStates.forEach(to => {
+                html += `<th>${to}</th>`;
+            });
+            html += '<th>Total</th></tr></thead><tbody>';
+
+            allStates.forEach(from => {
+                html += `<tr><td class="row-header">${from}</td>`;
+                let rowTotal = 0;
+                allStates.forEach(to => {
+                    const count = matrix[from][to];
+                    rowTotal += count;
+                    let cellClass = 'matrix-cell-zero';
+                    if (count > 0) {
+                        const ratio = count / maxCount;
+                        if (ratio > 0.5) cellClass = 'matrix-cell-high';
+                        else if (ratio > 0.15) cellClass = 'matrix-cell-med';
+                        else cellClass = 'matrix-cell-low';
+                    }
+                    html += `<td class="${cellClass}">${count.toLocaleString()}</td>`;
+                });
+                html += `<td style="background:#e8e8e8; font-weight:bold;">${rowTotal.toLocaleString()}</td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            // Export button
+            html += `<button class="export-btn" style="margin-top:10px;" onclick="exportComparisonMatrix()">Export Matrix CSV</button>`;
+
+            container.innerHTML = html;
+        }
+
+        function exportComparisonMatrix() {
+            const stageA = document.getElementById('compareStageA').value;
+            const stageB = document.getElementById('compareStageB').value;
+
+            let csv = stageA + '_to_' + stageB + ',' + allStates.join(',') + '\n';
+            allStates.forEach(from => {
+                const row = [from];
+                allStates.forEach(to => {
+                    const count = geneData.filter(g => g.states[stageA] === from && g.states[stageB] === to).length;
+                    row.push(count);
+                });
+                csv += row.join(',') + '\n';
+            });
+            downloadCSV(csv, `transition_matrix_${stageA}_to_${stageB}.csv`);
+        }
+
+        // =====================================================
+        // URL SHARING
+        // =====================================================
+        function copyShareLink() {
+            const input = document.getElementById('geneInput').value.trim();
+            if (!input) {
+                alert('Enter a gene first, then click Share Link.');
+                return;
+            }
+            const url = new URL(window.location);
+            url.searchParams.set('gene', input);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this link:', url.toString());
+            });
+        }
+
+        function checkURLParams() {
+            const params = new URLSearchParams(window.location.search);
+            const gene = params.get('gene');
+            if (gene) {
+                document.getElementById('geneInput').value = gene;
+                switchTabDirect('search');
+                setTimeout(() => searchGenes(), 500);
+            }
+        }
+
+        function switchTabDirect(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(tabName)) btn.classList.add('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
         }
 
         // Load data when page loads
