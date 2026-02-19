@@ -1255,6 +1255,7 @@
                         <div id="network-autocomplete-list" class="autocomplete-items"></div>
                     </div>
                     <button class="btn btn-search" onclick="searchNetworkTab()">Visualize</button>
+                    <button class="btn" style="margin-left: 10px; background-color: #6610f2; color: white;" onclick="loadHistoneNetwork()">🕸️ Global Histone Network</button>
                 </div>
             </div>
 
@@ -2617,7 +2618,12 @@
         // =====================================================
         // STATISTICS TAB
         // =====================================================
+        let visibleStatsStates = new Set(allStates);
+
         function initStatsTab() {
+            // Default: Hide QUIESCENT
+            visibleStatsStates.delete('QUIESCENT');
+
             // Populate comparison dropdowns
             const selA = document.getElementById('compareStageA');
             const selB = document.getElementById('compareStageB');
@@ -2638,10 +2644,12 @@
 
             if (geneData.length === 0) return;
 
-            // Calculate counts
+            const visibleStatesList = allStates.filter(s => visibleStatsStates.has(s));
+
+            // Calculate counts based on visibility
             const data = [];
             stages.forEach(stage => {
-                allStates.forEach(state => {
+                visibleStatesList.forEach(state => {
                     const count = geneData.filter(g => g.states[stage] === state).length;
                     data.push({ stage, state, count });
                 });
@@ -2658,9 +2666,11 @@
                 .append('g')
                 .attr('transform', `translate(${margin.left},${margin.top})`);
 
+            // Scales
             const x0 = d3.scaleBand().domain(stages).range([0, width]).padding(0.2);
-            const x1 = d3.scaleBand().domain(allStates).range([0, x0.bandwidth()]).padding(0.05);
-            const y = d3.scaleLinear().domain([0, d3.max(data, d => d.count)]).nice().range([height, 0]);
+            const x1 = d3.scaleBand().domain(visibleStatesList).range([0, x0.bandwidth()]).padding(0.05);
+            const yMax = d3.max(data, d => d.count) || 100;
+            const y = d3.scaleLinear().domain([0, yMax]).nice().range([height, 0]);
 
             // X axis
             svg.append('g')
@@ -2693,33 +2703,47 @@
                 .attr('transform', d => `translate(${x0(d)},0)`);
 
             stageGroups.selectAll('rect')
-                .data(stage => allStates.map(state => {
-                    const count = data.find(d => d.stage === stage && d.state === state).count;
-                    return { state, count };
+                .data(stage => visibleStatesList.map(state => {
+                    const d = data.find(item => item.stage === stage && item.state === state);
+                    return d || { state, count: 0 };
                 }))
                 .join('rect')
                 .attr('x', d => x1(d.state))
                 .attr('y', d => y(d.count))
                 .attr('width', x1.bandwidth())
                 .attr('height', d => height - y(d.count))
-                .attr('fill', d => stateColors[d.state]);
+                .attr('fill', d => stateColors[d.state])
+                .append('title')
+                .text(d => `${d.state}: ${d.count.toLocaleString()}`);
 
-            // Legend
+            // Interactive Legend
             const legend = svg.selectAll('.legend')
                 .data(allStates)
                 .join('g')
-                .attr('transform', (d, i) => `translate(${i * 130}, ${height + 35})`);
+                .attr('transform', (d, i) => `translate(${i * 120}, ${height + 35})`)
+                .style('cursor', 'pointer')
+                .on('click', (event, state) => {
+                    if (visibleStatsStates.has(state)) {
+                        visibleStatsStates.delete(state);
+                    } else {
+                        visibleStatsStates.add(state);
+                    }
+                    renderDistributionChart();
+                });
 
             legend.append('rect')
                 .attr('width', 12)
                 .attr('height', 12)
-                .attr('fill', d => stateColors[d]);
+                .attr('fill', d => visibleStatsStates.has(d) ? stateColors[d] : '#ccc')
+                .attr('stroke', d => visibleStatsStates.has(d) ? 'none' : '#999');
 
             legend.append('text')
                 .attr('x', 16)
                 .attr('y', 10)
                 .style('font-size', '10px')
-                .style('fill', '#333')
+                .style('fill', d => visibleStatsStates.has(d) ? '#333' : '#999')
+                .style('font-weight', d => visibleStatsStates.has(d) ? 'bold' : 'normal')
+                .style('text-decoration', d => visibleStatsStates.has(d) ? 'none' : 'line-through')
                 .text(d => d);
         }
 
@@ -2848,6 +2872,406 @@
 
         // Load data when page loads
         window.addEventListener('load', loadData);
+
+        // =====================================================
+        // GLOBAL HISTONE NETWORK (NO SERVER / LAYOUTS)
+        // =====================================================
+        let globalNetworkNodes = [];
+        let globalNetworkEdges = [];
+        let currentLayout = 'original';
+
+        async function loadHistoneNetwork() {
+            const container = document.getElementById('network-main-container');
+            container.innerHTML = '<div class="loading-section"><div class="spinner"></div><div class="loading-text">Loading network data (approx 10MB)...</div></div>';
+
+            try {
+                // Check if data is already loaded via script tag
+                if (window.histoneNetworkData) {
+                    processNetworkData(window.histoneNetworkData);
+                    return;
+                }
+
+                // Dynamic Script Loading (Works on file:// protocol)
+                const script = document.createElement('script');
+                script.src = 'histone_network_data.js';
+                
+                script.onload = () => {
+                    if (window.histoneNetworkData) {
+                        processNetworkData(window.histoneNetworkData);
+                    } else {
+                        throw new Error("Data loaded but variable not found.");
+                    }
+                };
+
+                script.onerror = () => {
+                    throw new Error("Failed to load 'histone_network_data.js'. Ensure the file exists.");
+                };
+
+                document.head.appendChild(script);
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
+            }
+        }
+
+        function processNetworkData(data) {
+            if (!data.nodes || data.nodes.length === 0) {
+                alert("No nodes found in data.");
+                return;
+            }
+
+            // Enrich nodes with State info from geneData
+            globalNetworkNodes = data.nodes.map(n => {
+                let state = 'Unknown';
+                if (n.node_type !== 'histone') {
+                    // Try to find gene in geneData
+                    const gene = geneData.find(g => g.symbol === n.id);
+                    if (gene) {
+                        // Use time attribute if available (e.g. "E10.5"), else P0
+                        const stageKey = n.time ? n.time.split('.')[0] : 'P0'; 
+                        state = gene.states[stageKey] || 'Unknown';
+                    }
+                } else {
+                    state = 'Histone'; 
+                }
+
+                return {
+                    ...n,
+                    state: state,
+                    originalX: n.x,
+                    originalY: n.y
+                };
+            });
+            globalNetworkEdges = data.edges;
+
+            // Render default
+            applyLayout('original');
+        }
+
+        function applyLayout(type) {
+            currentLayout = type;
+            const container = document.getElementById('network-main-container');
+            const width = container.clientWidth || 1000;
+            const height = 1000;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (type === 'original') {
+                globalNetworkNodes.forEach(n => {
+                    n.x = n.originalX;
+                    n.y = n.originalY;
+                });
+            } 
+            else if (type === 'circular') {
+                // Concentric Layout: Histones in center, Genes in outer rings
+                const histones = globalNetworkNodes.filter(n => n.node_type === 'histone');
+                const genes = globalNetworkNodes.filter(n => n.node_type !== 'histone');
+                
+                // Sort genes by name for consistent ordering
+                genes.sort((a, b) => (a.entity || a.id).localeCompare(b.entity || b.id));
+
+                // Layout Histones (Inner Circle)
+                const rHistone = 150;
+                histones.forEach((n, i) => {
+                    const angle = (i / histones.length) * 2 * Math.PI;
+                    n.x = cx + rHistone * Math.cos(angle);
+                    n.y = cy + rHistone * Math.sin(angle);
+                });
+
+                // Layout Genes (Outer Spirals to avoid overlap)
+                const rStart = 300;
+                const rStep = 0.5; // Spiral out slowly
+                genes.forEach((n, i) => {
+                    const angle = (i / genes.length) * 15 * Math.PI; // Multiple rotations
+                    const r = rStart + (i * 0.05); 
+                    n.x = cx + r * Math.cos(angle);
+                    n.y = cy + r * Math.sin(angle);
+                });
+            }
+            else if (type === 'timeline') {
+                // Group by Time/Stage along X axis
+                const timelineStages = ['E10.5', 'E11.5', 'E12.5', 'E13.5', 'E14.5', 'E15.5', 'E16.5', 'P0'];
+                const stageX = {};
+                const marginX = 100;
+                const availWidth = width - 2 * marginX;
+                
+                timelineStages.forEach((s, i) => {
+                    stageX[s] = marginX + (i / (timelineStages.length - 1)) * availWidth;
+                });
+
+                // Group nodes
+                const nodesByStage = {};
+                globalNetworkNodes.forEach(n => {
+                    let t = n.time; 
+                    if (!t) t = 'Unknown';
+                    if (!nodesByStage[t]) nodesByStage[t] = [];
+                    nodesByStage[t].push(n);
+                });
+
+                // Assign positions
+                Object.keys(nodesByStage).forEach(stage => {
+                    const nodes = nodesByStage[stage];
+                    const x = stageX[stage] || (width / 2); 
+                    const rangeY = 800;
+                    
+                    nodes.forEach((n, i) => {
+                        n.x = x + (Math.random() - 0.5) * 80; // Jitter X
+                        n.y = 100 + (i / nodes.length) * rangeY; // Spread Y
+                    });
+                });
+            }
+            else if (type === 'clustered') {
+                // Group by Activity State
+                const distinctStates = ['Histone', 'ACTIVE', 'POISED', 'TRANSCRIBE', 'PRIMED', 'QUIESCENT', 'REFRACTORY', 'Unknown'];
+                
+                // Position centers in a circle
+                const centers = {};
+                const rCenter = 350;
+                distinctStates.forEach((s, i) => {
+                    const angle = (i / distinctStates.length) * 2 * Math.PI;
+                    centers[s] = {
+                        x: cx + rCenter * Math.cos(angle),
+                        y: cy + rCenter * Math.sin(angle)
+                    };
+                });
+
+                // Group nodes
+                const nodesByState = {};
+                globalNetworkNodes.forEach(n => {
+                    const s = n.state || 'Unknown';
+                    if (!nodesByState[s]) nodesByState[s] = [];
+                    nodesByState[s].push(n);
+                });
+
+                // Assign positions in clusters
+                Object.keys(nodesByState).forEach(state => {
+                    const center = centers[state] || centers['Unknown'];
+                    const nodes = nodesByState[state];
+                    
+                    nodes.forEach((n, i) => {
+                        // Spiral packing
+                        const angle = i * 1.5; 
+                        const dist = 5 + Math.sqrt(i) * 3; 
+                        n.x = center.x + dist * Math.cos(angle);
+                        n.y = center.y + dist * Math.sin(angle);
+                    });
+                });
+            }
+            else if (type === 'grid') {
+                // Grid Layout sorted by type
+                const histones = globalNetworkNodes.filter(n => n.node_type === 'histone');
+                const genes = globalNetworkNodes.filter(n => n.node_type !== 'histone');
+                const all = [...histones, ...genes];
+                
+                const cols = Math.ceil(Math.sqrt(all.length));
+                const spacing = 80;
+
+                all.forEach((n, i) => {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    n.x = col * spacing;
+                    n.y = row * spacing;
+                });
+            }
+
+            renderGlobalNetwork(globalNetworkNodes, globalNetworkEdges, container);
+        }
+
+        function renderGlobalNetwork(nodes, edges, container) {
+            container.innerHTML = '';
+            
+            // Add control bar with Layout Buttons
+            const controls = document.createElement('div');
+            controls.style.cssText = "padding: 10px; background: #f8f8f8; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;";
+            
+            controls.innerHTML = `
+                <div style="margin-right: 15px; display:flex; gap:5px; flex-wrap:wrap;">
+                    <strong>Layout:</strong>
+                    <button class="btn ${currentLayout === 'original' ? 'btn-search' : ''}" onclick="applyLayout('original')" title="Default hierarchical view">Original</button>
+                    <button class="btn ${currentLayout === 'timeline' ? 'btn-search' : ''}" onclick="applyLayout('timeline')" title="Group by developmental stage">Timeline (Stage)</button>
+                    <button class="btn ${currentLayout === 'clustered' ? 'btn-search' : ''}" onclick="applyLayout('clustered')" title="Group by activity state">Clustered (State)</button>
+                    <button class="btn ${currentLayout === 'circular' ? 'btn-search' : ''}" onclick="applyLayout('circular')" title="Concentric circles">Circular</button>
+                    <button class="btn ${currentLayout === 'grid' ? 'btn-search' : ''}" onclick="applyLayout('grid')">Grid</button>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-left: auto;">
+                    ${nodes.length.toLocaleString()} Nodes | ${edges.length.toLocaleString()} Edges
+                </div>
+            `;
+            container.appendChild(controls);
+
+            const width = container.clientWidth || 1000;
+            const height = 800; // Fixed height for canvas
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.border = "1px solid #ccc";
+            container.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            // Calculate bounds for initial zoom
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            nodes.forEach(n => {
+                if(n.x < minX) minX = n.x;
+                if(n.x > maxX) maxX = n.x;
+                if(n.y < minY) minY = n.y;
+                if(n.y > maxY) maxY = n.y;
+            });
+
+            const graphWidth = maxX - minX || 100;
+            const graphHeight = maxY - minY || 100;
+            const padding = 50;
+            
+            const scaleX = (width - 2 * padding) / graphWidth;
+            const scaleY = (height - 2 * padding) / graphHeight;
+            const baseScale = Math.min(scaleX, scaleY) || 0.5;
+            
+            let transform = d3.zoomIdentity
+                .translate(width/2, height/2)
+                .scale(baseScale)
+                .translate(-(minX + graphWidth/2), -(minY + graphHeight/2));
+
+            // Pre-process edges
+            const edgesWithNodes = edges.map(e => ({
+                s: nodes.find(n => n.id === e.source),
+                t: nodes.find(n => n.id === e.target)
+            })).filter(e => e.s && e.t);
+
+            const histoneNodes = nodes.filter(n => n.node_type === 'histone');
+            const geneNodes = nodes.filter(n => n.node_type !== 'histone');
+
+            function draw() {
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.translate(transform.x, transform.y);
+                ctx.scale(transform.k, transform.k);
+
+                const tlX = -transform.x / transform.k;
+                const tlY = -transform.y / transform.k;
+                const brX = (width - transform.x) / transform.k;
+                const brY = (height - transform.y) / transform.k;
+                const cullPad = 200 / transform.k; 
+                const cullMinX = tlX - cullPad;
+                const cullMaxX = brX + cullPad;
+                const cullMinY = tlY - cullPad;
+                const cullMaxY = brY + cullPad;
+
+                // Edges
+                ctx.strokeStyle = "rgba(200, 200, 200, 0.4)";
+                ctx.lineWidth = 1 / transform.k;
+                ctx.beginPath();
+                for (let i = 0; i < edgesWithNodes.length; i++) {
+                    const e = edgesWithNodes[i];
+                    if (e.s.x < cullMinX && e.t.x < cullMinX) continue;
+                    if (e.s.x > cullMaxX && e.t.x > cullMaxX) continue;
+                    if (e.s.y < cullMinY && e.t.y < cullMinY) continue;
+                    if (e.s.y > cullMaxY && e.t.y > cullMaxY) continue;
+                    ctx.moveTo(e.s.x, e.s.y);
+                    ctx.lineTo(e.t.x, e.t.y);
+                }
+                ctx.stroke();
+
+                // Histones (Pink)
+                const histoneR = 20;
+                ctx.fillStyle = "#e83e8c";
+                ctx.beginPath();
+                for (let i = 0; i < histoneNodes.length; i++) {
+                    const n = histoneNodes[i];
+                    if (n.x < cullMinX || n.x > cullMaxX || n.y < cullMinY || n.y > cullMaxY) continue;
+                    ctx.moveTo(n.x + histoneR, n.y);
+                    ctx.arc(n.x, n.y, histoneR, 0, 2 * Math.PI);
+                }
+                ctx.fill();
+
+                // Genes (Color by State if Clustered, else Blue)
+                const geneR = 10;
+                if (currentLayout === 'clustered') {
+                    for (let i = 0; i < geneNodes.length; i++) {
+                        const n = geneNodes[i];
+                        if (n.x < cullMinX || n.x > cullMaxX || n.y < cullMinY || n.y > cullMaxY) continue;
+                        ctx.fillStyle = stateColors[n.state] || "#20558a";
+                        ctx.beginPath();
+                        ctx.moveTo(n.x + geneR, n.y);
+                        ctx.arc(n.x, n.y, geneR, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                } else {
+                    ctx.fillStyle = "#20558a";
+                    ctx.beginPath();
+                    for (let i = 0; i < geneNodes.length; i++) {
+                        const n = geneNodes[i];
+                        if (n.x < cullMinX || n.x > cullMaxX || n.y < cullMinY || n.y > cullMaxY) continue;
+                        ctx.moveTo(n.x + geneR, n.y);
+                        ctx.arc(n.x, n.y, geneR, 0, 2 * Math.PI);
+                    }
+                    ctx.fill();
+                }
+
+                // Labels
+                if (transform.k > 0.4) {
+                    ctx.fillStyle = "#000";
+                    ctx.font = `${12/transform.k}px Arial`;
+                    for (let i = 0; i < histoneNodes.length; i++) {
+                        const n = histoneNodes[i];
+                        if (n.x < cullMinX || n.x > cullMaxX || n.y < cullMinY || n.y > cullMaxY) continue;
+                        ctx.fillText(n.entity || n.id, n.x + histoneR + 2, n.y + 4);
+                    }
+                    if (transform.k > 0.8) {
+                        for (let i = 0; i < geneNodes.length; i++) {
+                            const n = geneNodes[i];
+                            if (n.x < cullMinX || n.x > cullMaxX || n.y < cullMinY || n.y > cullMaxY) continue;
+                            ctx.fillText(n.entity || n.id, n.x + geneR + 2, n.y + 4);
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+
+            const zoom = d3.zoom()
+                .scaleExtent([0.01, 20])
+                .on("zoom", (event) => {
+                    transform = event.transform;
+                    requestAnimationFrame(draw);
+                });
+
+            d3.select(canvas).call(zoom).call(zoom.transform, transform);
+
+            let lastHoverCheck = 0;
+            canvas.addEventListener('mousemove', (e) => {
+                const now = Date.now();
+                if (now - lastHoverCheck < 30) return;
+                lastHoverCheck = now;
+
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = (e.clientX - rect.left - transform.x) / transform.k;
+                const mouseY = (e.clientY - rect.top - transform.y) / transform.k;
+
+                let hovered = null;
+                for (let i = nodes.length - 1; i >= 0; i--) {
+                    const n = nodes[i];
+                    if (Math.abs(mouseX - n.x) > 25 || Math.abs(mouseY - n.y) > 25) continue;
+                    const r = (n.node_type === 'histone' ? 20 : 10);
+                    if ((mouseX - n.x)**2 + (mouseY - n.y)**2 < r*r) {
+                        hovered = n;
+                        break;
+                    }
+                }
+
+                if (hovered) {
+                    canvas.title = `${hovered.entity || hovered.id}\nType: ${hovered.node_type}\nState: ${hovered.state || 'N/A'}\nTime: ${hovered.time || 'N/A'}`;
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    canvas.title = '';
+                    canvas.style.cursor = 'default';
+                }
+            });
+
+            draw();
+        }
     </script>
 </body>
 
